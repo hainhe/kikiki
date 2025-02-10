@@ -56,7 +56,6 @@ BOT2_TOKEN = "7875194079:AAFcRGt2FN8ahpn1O-TY3rpS5fs3UF94dWA"
 
 # Thay thế bằng ID nhóm hoặc người nhận tin nhắn
 CHAT_ID1 = "-4775219722"
-CHAT_ID2 = "-4775219722"
 
 def send_telegram_message(bot_token, chat_id, message):
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -73,11 +72,11 @@ def webhook():
     alert_message = data.get("message", "")
     
     # Bot1 gửi trước cho tất cả các tín hiệu
-    send_telegram_message(BOT1_TOKEN, CHAT_ID1, alert_message)
+    send_telegram_message(BOT1_TOKEN, CHAT_ID, alert_message)
     time.sleep(2)  # Chờ 2 giây trước khi bot2 gửi tiếp
     
     # Bot2 gửi tiếp theo
-    send_telegram_message(BOT2_TOKEN, CHAT_ID2, "📢 Theo dõi sau tín hiệu: " + alert_message)
+    send_telegram_message(BOT2_TOKEN, CHAT_ID, "📢 Theo dõi sau tín hiệu: " + alert_message)
     
     return jsonify({"status": "ok"})
 
