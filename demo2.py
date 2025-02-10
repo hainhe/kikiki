@@ -27,10 +27,10 @@ def webhook():
         if "🚀 LONG 🚀" in message or "🚨 SHORT 🚨" in message:
             send_message_to_telegram(BOT1_TOKEN, message)  # Bot 1 gửi LONG/SHORT
 
-        elif "👀 LONG nến 1 👀 (🥇)" in message or "👀 SHORT nến 1 👀 (🥇)" in message:
+        elif "🥇" in message:
             send_message_to_telegram(BOT2_TOKEN, message)  # Bot 2 gửi Huân chương 1 (🥇)
 
-        elif "👀 LONG nến 2 👀 (🥈)" in message or "👀 SHORT nến 2 👀 (🥈)" in message:
+        elif "🥈" in message:
             send_message_to_telegram(BOT2_TOKEN, message)  # Bot 2 gửi Huân chương 2 (🥈)
 
     except Exception as e:
