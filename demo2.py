@@ -55,7 +55,7 @@ BOT1_TOKEN = "8082939784:AAEDPeIDJN7VL3RT9D2UhMHfGP2P0n9hwHE"
 BOT2_TOKEN = "7875194079:AAFcRGt2FN8ahpn1O-TY3rpS5fs3UF94dWA"
 
 # Thay thế bằng ID nhóm hoặc người nhận tin nhắn
-CHAT_ID1 = "-4775219722"
+CHAT_ID = "-4775219722"
 
 def send_telegram_message(bot_token, chat_id, message):
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
