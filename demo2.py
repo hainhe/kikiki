@@ -27,9 +27,9 @@ def webhook():
         alert_message = data.get("message", "")
 
         if "🚀 LONG 🚀" in alert_message:
-            send_telegram_message(BOT1_TOKEN, CHAT_ID1, alert_message)
+            send_telegram_message(BOT1_TOKEN, CHAT_ID, alert_message)
         elif "📢 Theo dõi nến" in alert_message:
-            send_telegram_message(BOT2_TOKEN, CHAT_ID2, alert_message)
+            send_telegram_message(BOT2_TOKEN, CHAT_ID, alert_message)
 
         return jsonify({"status": "ok"})
 
