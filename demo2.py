@@ -18,19 +18,27 @@ def send_telegram_message(bot_token, chat_id, message):
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    data = request.json
-    
-    if data is None:
-        return jsonify({"error": "No data received"}), 400
-    
-    alert_message = data.get("message", "")
-    
-    if "🚀 LONG 🚀" in alert_message:
-        send_telegram_message(BOT1_TOKEN, CHAT_ID1, alert_message)
-    elif "📢 Theo dõi nến" in alert_message:
-        send_telegram_message(BOT2_TOKEN, CHAT_ID2, alert_message)
-    
-    return jsonify({"status": "ok"})
+    try:
+        data = request.get_json()  # Lấy dữ liệu JSON nếu có
+        
+        if data is None:  # Nếu không có JSON, thử lấy từ form-data
+            data = request.form.to_dict()
+
+        if not data:
+            return jsonify({"error": "No data received"}), 400
+
+        alert_message = data.get("message", "")
+
+        if "🚀 LONG 🚀" in alert_message:
+            send_telegram_message(BOT1_TOKEN, CHAT_ID1, alert_message)
+        elif "📢 Theo dõi nến" in alert_message:
+            send_telegram_message(BOT2_TOKEN, CHAT_ID2, alert_message)
+
+        return jsonify({"status": "ok"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
