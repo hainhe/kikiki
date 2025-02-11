@@ -33,11 +33,11 @@ def webhook():
     if "LONG" in alert_message or "SHORT" in alert_message:
         messages_to_send.append((BOT1_TOKEN, alert_message))
     
-    if "🏅 Huân chương 1" in alert_message:
-        messages_to_send.append((BOT2_TOKEN, "🏅 Huân chương 1"))
+    if "🏅" in alert_message:
+        messages_to_send.append((BOT2_TOKEN, alert_message))
     
-    if "🏅 Huân chương 2" in alert_message:
-        messages_to_send.append((BOT2_TOKEN, "🏅 Huân chương 2"))
+    if "🥈" in alert_message:
+        messages_to_send.append((BOT2_TOKEN, alert_message))
 
     # Gửi tin nhắn theo đúng thứ tự
     for bot_token, message in messages_to_send:
