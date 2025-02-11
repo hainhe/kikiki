@@ -20,14 +20,11 @@ def webhook():
     print("Raw data:", request.data)
     
     try:
-        data = request.get_json(force=True)  # Bắt buộc đọc JSON, tránh lỗi 415
+        alert_message = request.data.decode("utf-8").strip()  # Đọc dữ liệu thô
+        if not alert_message:
+            return jsonify({"error": "No message received"}), 400
     except Exception as e:
-        return jsonify({"error": "Invalid JSON", "details": str(e)}), 400
-    
-    if data is None:
-        return jsonify({"error": "No data received"}), 400
-    
-    alert_message = data.get("message", "")
+        return jsonify({"error": "Failed to read data", "details": str(e)}), 400
     
     # Bot1 gửi trước cho tất cả các tín hiệu
     send_telegram_message(BOT1_TOKEN, CHAT_ID, alert_message)
