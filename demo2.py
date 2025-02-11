@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 import requests
 import queue
 import threading
-import time
 
 app = Flask(__name__)
 
@@ -24,31 +23,30 @@ def process_queue():
     while True:
         bot_token, message = message_queue.get()  # Lấy tin nhắn từ hàng đợi
         send_telegram_message(bot_token, CHAT_ID, message)
-        time.sleep(1)  # Đảm bảo không gửi quá nhanh
         message_queue.task_done()
 
-# Khởi động luồng xử lý
+# Khởi động luồng xử lý (chạy trong nền)
 threading.Thread(target=process_queue, daemon=True).start()
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
     print("Headers:", request.headers)
     print("Raw data:", request.data)
-
+    
     try:
         alert_message = request.data.decode("utf-8").strip()
         if not alert_message:
             return jsonify({"error": "No message received"}), 400
     except Exception as e:
         return jsonify({"error": "Failed to read data", "details": str(e)}), 400
-
+    
     # Thêm tin nhắn vào hàng đợi theo thứ tự mong muốn
     if "LONG" in alert_message or "SHORT" in alert_message:
         message_queue.put((BOT1_TOKEN, alert_message))
-
+    
     if "🏅 Huân chương 1" in alert_message:
         message_queue.put((BOT2_TOKEN, "🏅 Huân chương 1"))
-
+    
     if "🏅 Huân chương 2" in alert_message:
         message_queue.put((BOT2_TOKEN, "🏅 Huân chương 2"))
 
