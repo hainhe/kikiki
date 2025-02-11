@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 import requests
-import time
 
 app = Flask(__name__)
 
@@ -12,8 +11,7 @@ CHAT_ID = "-4775219722"
 def send_telegram_message(bot_token, chat_id, message):
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
-    response = requests.post(url, json=payload)
-    print(f"Sent message: {message}, Status Code: {response.status_code}")  # Log kết quả gửi
+    requests.post(url, json=payload)
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -27,27 +25,19 @@ def webhook():
     except Exception as e:
         return jsonify({"error": "Failed to read data", "details": str(e)}), 400
     
-    messages_to_send = []
-
-    # Xử lý theo thứ tự mong muốn
+    # Bot1 chỉ gửi tín hiệu LONG/SHORT
     if "LONG" in alert_message or "SHORT" in alert_message:
-        messages_to_send.append((BOT1_TOKEN, alert_message))
+        send_telegram_message(BOT1_TOKEN, CHAT_ID, alert_message)
     
-    if "🏅" in alert_message:
-        messages_to_send.append((BOT2_TOKEN, alert_message))
+    # Bot2 chỉ gửi tín hiệu theo dõi nến
+    if "📢 Theo dõi" in alert_message:
+        send_telegram_message(BOT2_TOKEN, CHAT_ID, alert_message)
     
-    if "🥈" in alert_message:
-        messages_to_send.append((BOT2_TOKEN, alert_message))
-
-    # Gửi tin nhắn theo đúng thứ tự
-    for bot_token, message in messages_to_send:
-        send_telegram_message(bot_token, CHAT_ID, message)
-        time.sleep(1)  # Chờ 1 giây để tránh giới hạn tốc độ
-
     return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
 
