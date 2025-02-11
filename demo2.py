@@ -26,13 +26,13 @@ def webhook():
     except Exception as e:
         return jsonify({"error": "Failed to read data", "details": str(e)}), 400
     
-    # Bot1 gửi trước cho tất cả các tín hiệu
-    send_telegram_message(BOT1_TOKEN, CHAT_ID, alert_message)
-    time.sleep(2)  # Chờ 2 giây trước khi bot2 gửi tiếp
+    # Bot1 chỉ gửi tín hiệu LONG/SHORT
+    if "LONG" in alert_message or "SHORT" in alert_message:
+        send_telegram_message(BOT1_TOKEN, CHAT_ID, alert_message)
     
-    # Bot2 gửi tiếp theo nếu là tín hiệu theo dõi
+    # Bot2 chỉ gửi tín hiệu theo dõi nến
     if "📢 Theo dõi" in alert_message:
-        send_telegram_message(BOT2_TOKEN, CHAT_ID, "📢 Theo dõi sau tín hiệu: " + alert_message)
+        send_telegram_message(BOT2_TOKEN, CHAT_ID, alert_message)
     
     return jsonify({"status": "ok"})
 
