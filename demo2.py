@@ -16,7 +16,13 @@ def send_telegram_message(bot_token, chat_id, message):
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    data = request.json
+    print("Headers:", request.headers)
+    print("Raw data:", request.data)
+    
+    try:
+        data = request.get_json(force=True)  # Bắt buộc đọc JSON, tránh lỗi 415
+    except Exception as e:
+        return jsonify({"error": "Invalid JSON", "details": str(e)}), 400
     
     if data is None:
         return jsonify({"error": "No data received"}), 400
