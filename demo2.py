@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 import requests
-import threading
 import time
 
 app = Flask(__name__)
@@ -13,13 +12,8 @@ CHAT_ID = "-4775219722"
 def send_telegram_message(bot_token, chat_id, message):
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
-    requests.post(url, json=payload)
-
-def process_messages(messages_to_send):
-    """Gửi tin nhắn theo thứ tự bằng một luồng riêng."""
-    for bot_token, message in messages_to_send:
-        send_telegram_message(bot_token, CHAT_ID, message)
-        time.sleep(1)  # Tránh spam API
+    response = requests.post(url, json=payload)
+    print(f"Sent message: {message}, Status Code: {response.status_code}")  # Log kết quả gửi
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -44,14 +38,17 @@ def webhook():
     
     if "🏅 Huân chương 2" in alert_message:
         messages_to_send.append((BOT2_TOKEN, "🏅 Huân chương 2"))
-    
-    # Tạo luồng riêng để xử lý tin nhắn mà không làm chậm request
-    threading.Thread(target=process_messages, args=(messages_to_send,)).start()
-    
+
+    # Gửi tin nhắn theo đúng thứ tự
+    for bot_token, message in messages_to_send:
+        send_telegram_message(bot_token, CHAT_ID, message)
+        time.sleep(1)  # Chờ 1 giây để tránh giới hạn tốc độ
+
     return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
 # from flask import Flask, request, jsonify
