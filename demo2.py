@@ -27,25 +27,28 @@ def keep_alive():
     
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    print("Headers:", request.headers)
-    print("Raw data:", request.data)
+    print("📥 Webhook received raw data:", request.data)  # In dữ liệu thô
+    print("📜 Decoded data:", request.data.decode("utf-8", errors="ignore"))  # In dữ liệu sau khi decode
     
     try:
-        alert_message = request.data.decode("utf-8").strip()  # Đọc dữ liệu thô
+        alert_message = request.data.decode("utf-8", errors="ignore").strip()
         if not alert_message:
             return jsonify({"error": "No message received"}), 400
     except Exception as e:
         return jsonify({"error": "Failed to read data", "details": str(e)}), 400
     
-    # Bot1 chỉ gửi tín hiệu LONG/SHORT
+    print(f"📩 Processed message: {alert_message}")
+
     if "LONG" in alert_message:
+        print("🚀 Sending LONG signal to Telegram")
         send_telegram_message(BOT1_TOKEN, CHAT_ID, alert_message)
     
-    # Bot2 chỉ gửi tín hiệu theo dõi nến
     if "SHORT" in alert_message:
+        print("🚀 Sending SHORT signal to Telegram")
         send_telegram_message(BOT2_TOKEN, CHAT_ID, alert_message)
     
     return jsonify({"status": "ok"})
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
