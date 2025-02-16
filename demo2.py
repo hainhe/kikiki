@@ -11,7 +11,12 @@ CHAT_ID = "-4775219722"
 def send_telegram_message(bot_token, chat_id, message):
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
-    requests.post(url, json=payload)
+    
+    print(f"Sending message to Telegram: {payload}")  # In log để kiểm tra request
+    response = requests.post(url, json=payload)
+    
+    print(f"Telegram response: {response.status_code}, {response.text}")  # In phản hồi từ Telegram
+
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
