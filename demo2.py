@@ -39,11 +39,11 @@ def webhook():
     
     print(f"📩 Processed message: {alert_message}")
 
-    if "LONG" in alert_message:
+    if "Long" in alert_message:
         print("🚀 Sending LONG signal to Telegram")
         send_telegram_message(BOT1_TOKEN, CHAT_ID, alert_message)
     
-    if "SHORT" in alert_message:
+    if "Short" in alert_message:
         print("🚀 Sending SHORT signal to Telegram")
         send_telegram_message(BOT2_TOKEN, CHAT_ID, alert_message)
     
