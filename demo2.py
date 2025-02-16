@@ -17,7 +17,11 @@ def send_telegram_message(bot_token, chat_id, message):
     
     print(f"Telegram response: {response.status_code}, {response.text}")  # In phản hồi từ Telegram
 
-
+@app.route("/", methods=["HEAD", "GET"])
+def keep_alive():
+    print("🟢 UptimeRobot ping received! Keeping Render alive...")
+    return "", 200
+    
 @app.route("/webhook", methods=["POST"])
 def webhook():
     print("Headers:", request.headers)
