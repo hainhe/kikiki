@@ -12,10 +12,13 @@ def send_telegram_message(bot_token, chat_id, message):
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
     
-    print(f"Sending message to Telegram: {payload}")  # In log để kiểm tra request
+    print(f"Sending message to Telegram: {payload}")  # Debug log
     response = requests.post(url, json=payload)
     
-    print(f"Telegram response: {response.status_code}, {response.text}")  # In phản hồi từ Telegram
+    if response.status_code != 200:
+        print(f"⚠️ Telegram Error: {response.status_code}, {response.text}")  # Log lỗi
+    else:
+        print(f"✅ Message sent successfully: {response.text}")
 
 @app.route("/", methods=["HEAD", "GET"])
 def keep_alive():
