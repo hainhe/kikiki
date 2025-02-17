@@ -16,86 +16,67 @@ CHAT_ID = "-4708928215"
 
 # Cấu hình Selenium
 chrome_options = Options()
-chrome_options.add_argument("--headless")  # Chạy không hiển thị giao diện
+chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_argument("--window-size=1920x1080")
 
 def send_telegram_message(bot_token, chat_id, message, image_path=None):
-    # Gửi tin nhắn văn bản
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
     requests.post(url, json=payload)
-
-    # Gửi ảnh nếu có
+    
     if image_path:
-        url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
-        with open(image_path, "rb") as image_file:
-            files = {"photo": image_file}
-            payload = {"chat_id": chat_id}
-            requests.post(url, data=payload, files=files)
+        url_photo = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
+        with open(image_path, "rb") as photo:
+            requests.post(url_photo, data={"chat_id": chat_id}, files={"photo": photo})
 
 def capture_chart_screenshot(chart_url):
     driver = webdriver.Chrome(options=chrome_options)
     try:
         driver.get(chart_url)
         time.sleep(5)  # Đợi biểu đồ tải xong
+        
+        # Chụp toàn bộ màn hình
         screenshot = driver.get_screenshot_as_png()
-        image = Image.open(io.BytesIO(screenshot))
         image_path = "chart_screenshot.png"
-        image.save(image_path)
+        with open(image_path, "wb") as file:
+            file.write(screenshot)
         return image_path
     finally:
         driver.quit()
 
 @app.route("/", methods=["HEAD", "GET"])
 def keep_alive():
-    print("🟢 UptimeRobot ping received! Keeping Render alive...")
     return "", 200
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    print(f"📥 Headers: {request.headers}")
-    print(f"📥 Raw data: {request.data}")
-
     try:
         alert_message = request.data.decode("utf-8").strip()
         if not alert_message:
-            print("⚠️ No message received!")
             return jsonify({"error": "No message received"}), 400
-
-        print(f"📥 Processed Message: {alert_message}")
-
-        # Trích xuất tín hiệu và URL biểu đồ
+        
         signal = extract_signal(alert_message)
         chart_url = extract_chart_url(alert_message)
-
-        # Chụp ảnh biểu đồ nếu có URL
+        
         image_path = None
         if chart_url:
-            print(f"📸 Capturing chart screenshot from: {chart_url}")
             image_path = capture_chart_screenshot(chart_url)
-
-        # Gửi tín hiệu qua bot tương ứng
+        
         if signal == "LONG":
-            print(f"🚀 Sending LONG signal via BOT1")
             send_telegram_message(BOT1_TOKEN, CHAT_ID, alert_message, image_path)
-
         elif signal == "SHORT":
-            print(f"📉 Sending SHORT signal via BOT2")
             send_telegram_message(BOT2_TOKEN, CHAT_ID, alert_message, image_path)
-
         else:
-            print("⚠️ Unknown signal type!")
             return jsonify({"error": "Unknown signal type"}), 400
-
+        
     except Exception as e:
-        print(f"❌ Error processing webhook: {e}")
         return jsonify({"error": str(e)}), 500
-
+    
     return jsonify({"status": "ok"})
 
 def extract_signal(message):
-    # Trích xuất tín hiệu (Long/Short) từ thông báo
     if "Signal: Long" in message:
         return "LONG"
     elif "Signal: Short" in message:
@@ -103,7 +84,6 @@ def extract_signal(message):
     return None
 
 def extract_chart_url(message):
-    # Trích xuất URL biểu đồ từ thông báo
     match = re.search(r"Chart URL: (https://www\.tradingview\.com/chart/[^ ]+)", message)
     return match.group(1) if match else None
 
