@@ -27,24 +27,22 @@ def send_telegram_message(bot_token, chat_id, message, image_path=None):
             requests.post(url_photo, data={"chat_id": chat_id}, files={"photo": photo})
 
 def capture_chart(url, save_path="chart.png"):
-    """Dùng Selenium chụp ảnh màn hình TradingView"""
     try:
         options = webdriver.ChromeOptions()
         options.add_argument("--headless")
         options.add_argument("--disable-gpu")
-        options.add_argument("--no-sandbox")  # Quan trọng khi chạy trên Render
-        options.add_argument("--disable-dev-shm-usage")  # Giúp tránh lỗi bộ nhớ
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--window-size=1920x1080")
 
-        # Định nghĩa đường dẫn Chrome nếu môi trường không tự động nhận diện
-        chrome_path = "/usr/bin/google-chrome"
-        if os.path.exists(chrome_path):
-            options.binary_location = chrome_path
+        # Đường dẫn Chrome binary trên Render (sau khi cài đặt)
+        chrome_binary = "/usr/bin/google-chrome"
+        options.binary_location = chrome_binary
 
+        # Sử dụng ChromeDriverManager để tự động tải ChromeDriver
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.get(url)
-        time.sleep(3)  # Đợi TradingView load
-
+        time.sleep(5)  # Tăng thời gian chờ để đảm bảo TradingView load xong
         driver.save_screenshot(save_path)
         driver.quit()
         return save_path
