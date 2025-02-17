@@ -17,12 +17,17 @@ BOT2_TOKEN = "7875194079:AAFcRGt2FN8ahpn1O-TY3rpS5fs3UF94dWA"
 CHAT_ID = "-4775219722"
 
 # Cấu hình Chrome cho Selenium
-chrome_options = Options()
+CHROME_PATH = "/usr/bin/google-chrome-stable"
+CHROMEDRIVER_PATH = "/usr/local/bin/chromedriver"
+
+chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
-chrome_options.add_argument("--window-size=1920x1080")
-chrome_options.binary_location = "/usr/bin/google-chrome"  # Chạy trên Render
+chrome_options.binary_location = CHROME_PATH  # Chỉ định Chrome Portable
+
+service = Service(CHROMEDRIVER_PATH)
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
 
 def send_telegram_message(bot_token, chat_id, message, image_path=None):
