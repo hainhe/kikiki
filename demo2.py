@@ -6,6 +6,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import traceback
+import re 
 from PIL import Image
 import io
 import re
@@ -52,6 +53,12 @@ def capture_chart_screenshot(chart_url):
         return image_path
     finally:
         driver.quit()
+
+def extract_chart_url(message):
+    """Trích xuất URL biểu đồ từ tin nhắn TradingView."""
+    match = re.search(r"Chart URL: (https://www\.tradingview\.com/chart/\S+)", message)
+    return match.group(1) if match else None
+
 
 @app.route("/", methods=["HEAD", "GET"])
 def keep_alive():
