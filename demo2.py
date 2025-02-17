@@ -26,7 +26,9 @@ chrome_options.add_argument("--window-size=1920x1080")
 def send_telegram_message(bot_token, chat_id, message, image_path=None):
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
-    requests.post(url, json=payload)
+    response = requests.post(url, json=payload)
+    print("Telegram response:", response.status_code, response.text)  # Thêm dòng này để debug
+
     
     if image_path:
         url_photo = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
