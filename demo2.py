@@ -92,7 +92,6 @@ def webhook():
     return jsonify({"status": "ok"})
     
 def extract_signal(message):
-    """Trích xuất tín hiệu LONG hoặc SHORT từ tin nhắn TradingView."""
     if "Long" in message:
         return "LONG"
     elif "Short" in message:
