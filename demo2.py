@@ -5,6 +5,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
+import traceback
 from PIL import Image
 import io
 import re
@@ -89,10 +90,14 @@ def webhook():
         return jsonify({"error": str(e)}), 500
 
     return jsonify({"status": "ok"})
-
-def extract_chart_url(message):
-    match = re.search(r"Chart URL: (https://www\.tradingview\.com/chart/[^ ]+)", message)
-    return match.group(1) if match else None
+    
+def extract_signal(message):
+    """Trích xuất tín hiệu LONG hoặc SHORT từ tin nhắn TradingView."""
+    if "Long" in message:
+        return "LONG"
+    elif "Short" in message:
+        return "SHORT"
+    return None
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
