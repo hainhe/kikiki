@@ -1,6 +1,4 @@
-flask
+Flask
 requests
 selenium
-webdriver-manager
-Pillow
-gunicorn
+pillow
