@@ -3,3 +3,4 @@ requests
 selenium
 pillow
 webdriver-manager
+gunicorn
