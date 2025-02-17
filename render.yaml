@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: tradingview-telegram-bot
-    env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python main.py"
-    envVars:
-      - key: PORT
-        value: 5000
