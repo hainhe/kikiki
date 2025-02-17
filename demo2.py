@@ -4,10 +4,10 @@ import traceback
 import re
 import time
 import os
-
-# Thêm các thư viện để chụp ảnh màn hình với Selenium
+import tempfile
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+
 
 app = Flask(__name__)
 
@@ -57,25 +57,20 @@ def extract_chart_url(alert_message):
     return None
 
 def capture_chart_screenshot(chart_url):
-    """
-    Sử dụng Selenium để mở URL chart và chụp ảnh màn hình.
-    Chú ý: Trên Render, bạn cần đảm bảo có sẵn Chrome và chromedriver.
-    """
     options = Options()
     options.headless = True
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
-    
-    # Nếu cần, bạn có thể chỉ định đường dẫn chromedriver:
-    # driver = webdriver.Chrome(executable_path="/path/to/chromedriver", options=options)
+    # Chỉ định đường dẫn tới Chrome (theo Dockerfile của bạn)
+    options.binary_location = '/usr/bin/google-chrome'
+    # Tạo thư mục user-data-dir duy nhất cho phiên này
+    temp_user_data_dir = tempfile.mkdtemp()
+    options.add_argument(f'--user-data-dir={temp_user_data_dir}')
+
     driver = webdriver.Chrome(options=options)
-    
     driver.set_window_size(1280, 720)
     driver.get(chart_url)
-    
-    # Đợi trang tải (có thể tăng thời gian nếu cần)
-    time.sleep(5)
-    
+    time.sleep(5)  # Đợi trang tải đầy đủ
     screenshot_path = "chart_screenshot.png"
     driver.save_screenshot(screenshot_path)
     driver.quit()
