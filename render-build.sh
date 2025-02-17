@@ -1,30 +1,21 @@
 #!/bin/bash
-echo "🔹 Cài đặt Chrome cho môi trường Render..."
-
-# Tải Chrome
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-if [ $? -ne 0 ]; then
-  echo "❌ Lỗi: Không tải được Chrome."
-  exit 1
-fi
 
 # Cập nhật package index
 apt-get update
-if [ $? -ne 0 ]; then
-  echo "❌ Lỗi: Không cập nhật được package index."
-  exit 1
-fi
 
-# Cài đặt Chrome
+# Cài đặt các phụ thuộc cần thiết
+apt-get install -y wget unzip
+
+# Cài đặt Google Chrome
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 apt-get install -y ./google-chrome-stable_current_amd64.deb
-if [ $? -ne 0 ]; then
-  echo "❌ Lỗi: Không cài đặt được Chrome."
-  exit 1
-fi
 
-# Xóa file .deb
-rm google-chrome-stable_current_amd64.deb
-echo "✅ Chrome đã được cài đặt thành công!"
+# Cài đặt ChromeDriver
+CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+' | head -1)
+wget -N https://chromedriver.storage.googleapis.com/$CHROME_VERSION/chromedriver_linux64.zip
+unzip chromedriver_linux64.zip
+mv chromedriver /usr/local/bin/chromedriver
+chmod +x /usr/local/bin/chromedriver
 
-# Kiểm tra phiên bản Chrome
-google-chrome --version
+# Dọn dẹp file tạm
+rm google-chrome-stable_current_amd64.deb chromedriver_linux64.zip
