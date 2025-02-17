@@ -60,34 +60,35 @@ def keep_alive():
 def webhook():
     try:
         alert_message = request.data.decode("utf-8").strip()
+        print("Received alert:", alert_message)  # Log nội dung nhận được
+
         if not alert_message:
             return jsonify({"error": "No message received"}), 400
-        
+
         signal = extract_signal(alert_message)
         chart_url = extract_chart_url(alert_message)
-        
+
+        print("Extracted signal:", signal)  # Log tín hiệu
+        print("Extracted chart URL:", chart_url)  # Log URL
+
         image_path = None
         if chart_url:
             image_path = capture_chart_screenshot(chart_url)
-        
+            print("Captured image path:", image_path)  # Log ảnh chụp
+
         if signal == "LONG":
             send_telegram_message(BOT1_TOKEN, CHAT_ID, alert_message, image_path)
         elif signal == "SHORT":
             send_telegram_message(BOT2_TOKEN, CHAT_ID, alert_message, image_path)
         else:
             return jsonify({"error": "Unknown signal type"}), 400
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-    return jsonify({"status": "ok"})
 
-def extract_signal(message):
-    if "Signal: Long" in message:
-        return "LONG"
-    elif "Signal: Short" in message:
-        return "SHORT"
-    return None
+    except Exception as e:
+        error_message = traceback.format_exc()
+        print("Error in webhook:", error_message)  # Log lỗi chi tiết
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({"status": "ok"})
 
 def extract_chart_url(message):
     match = re.search(r"Chart URL: (https://www\.tradingview\.com/chart/[^ ]+)", message)
