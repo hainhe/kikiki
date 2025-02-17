@@ -12,9 +12,9 @@ import re
 app = Flask(__name__)
 
 # Thông tin bot Telegram
-BOT1_TOKEN = "7637391486:AAEYarDrhPKUkWzsoteS3yiVgB5QeiZdKoI"
-BOT2_TOKEN = "7466054301:AAGexBfB5pNbwmnHP1ocC9jICxR__GSNgOA"
-CHAT_ID = "-4708928215"
+BOT1_TOKEN = "8082939784:AAEDPeIDJN7VL3RT9D2UhMHfGP2P0n9hwHE"
+BOT2_TOKEN = "7875194079:AAFcRGt2FN8ahpn1O-TY3rpS5fs3UF94dWA"
+CHAT_ID = "-4775219722"
 
 # Cấu hình Selenium
 chrome_options = Options()
