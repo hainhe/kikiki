@@ -2,3 +2,4 @@ Flask
 requests
 selenium
 pillow
+webdriver-manager
