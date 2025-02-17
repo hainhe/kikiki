@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 from PIL import Image
 import io
@@ -32,7 +34,8 @@ def send_telegram_message(bot_token, chat_id, message, image_path=None):
             requests.post(url_photo, data={"chat_id": chat_id}, files={"photo": photo})
 
 def capture_chart_screenshot(chart_url):
-    driver = webdriver.Chrome(options=chrome_options)
+    service = Service(ChromeDriverManager().install())  # Tự động tải ChromeDriver
+    driver = webdriver.Chrome(service=service, options=chrome_options)
     try:
         driver.get(chart_url)
         time.sleep(5)  # Đợi biểu đồ tải xong
