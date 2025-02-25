@@ -9,7 +9,7 @@ BOT2_TOKEN = "7875194079:AAFcRGt2FN8ahpn1O-TY3rpS5fs3UF94dWA"
 CHAT_ID = "-4775219722"
 
 # API Key của APIFlash (thay bằng key thật của bạn)
-APIFLASH_API_KEY = "your_apiflash_api_key_here"
+APIFLASH_API_KEY = "314801dee3834f189467fee984cba673"
 
 # Hàm gửi ảnh qua Telegram
 def send_telegram_photo(bot_token, chat_id, photo_url, caption):
