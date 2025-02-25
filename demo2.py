@@ -1,80 +1,29 @@
 from flask import Flask, request, jsonify
 import requests
-import traceback
-import re
-import time
-import os
-import tempfile
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-
 
 app = Flask(__name__)
 
-# Thông tin bot Telegram của bạn
+# Thông tin bot Telegram
 BOT1_TOKEN = "8082939784:AAEDPeIDJN7VL3RT9D2UhMHfGP2P0n9hwHE"
 BOT2_TOKEN = "7875194079:AAFcRGt2FN8ahpn1O-TY3rpS5fs3UF94dWA"
 CHAT_ID = "-4775219722"
 
-def send_telegram_message(bot_token, chat_id, message, image_path=None):
-    """
-    Gửi tin nhắn hoặc ảnh qua Telegram.
-    Nếu image_path có tồn tại thì gửi ảnh kèm caption, nếu không thì gửi text message.
-    """
-    if image_path and os.path.exists(image_path):
-        url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
-        with open(image_path, "rb") as photo:
-            data = {"chat_id": chat_id, "caption": message, "parse_mode": "Markdown"}
-            files = {"photo": photo}
-            requests.post(url, data=data, files=files)
-    else:
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
-        requests.post(url, json=payload)
+# API Key của APIFlash (thay bằng key thật của bạn)
+APIFLASH_API_KEY = "your_apiflash_api_key_here"
 
-def extract_signal(alert_message):
-    """
-    Trích xuất tín hiệu từ alert.
-    Giả sử alert có dạng:
-    Signal: Long
-    Chart URL: https://www.tradingview.com/chart/?symbol=...
-    """
-    if "Long" in alert_message or "long" in alert_message:
-        return "LONG"
-    elif "Short" in alert_message or "short" in alert_message:
-        return "SHORT"
-    else:
-        return None
+# Hàm gửi ảnh qua Telegram
+def send_telegram_photo(bot_token, chat_id, photo_url, caption):
+    url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
+    payload = {"chat_id": chat_id, "photo": photo_url, "caption": caption}
+    response = requests.post(url, json=payload)
+    if response.status_code != 200:
+        print(f"❌ Error sending photo: {response.text}")
 
-def extract_chart_url(alert_message):
-    """
-    Trích xuất URL chart từ alert.
-    Sử dụng regex để tìm phần sau 'Chart URL:'.
-    """
-    match = re.search(r"Chart URL:\s*(\S+)", alert_message)
-    if match:
-        return match.group(1)
-    return None
-
-def capture_chart_screenshot(chart_url):
-    options = Options()
-    options.headless = True
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    # Chỉ định đường dẫn tới Chrome (theo Dockerfile của bạn)
-    options.binary_location = '/usr/bin/google-chrome'
-    # Tạo thư mục user-data-dir duy nhất cho phiên này
-    temp_user_data_dir = tempfile.mkdtemp()
-    options.add_argument(f'--user-data-dir={temp_user_data_dir}')
-
-    driver = webdriver.Chrome(options=options)
-    driver.set_window_size(1280, 720)
-    driver.get(chart_url)
-    time.sleep(5)  # Đợi trang tải đầy đủ
-    screenshot_path = "chart_screenshot.png"
-    driver.save_screenshot(screenshot_path)
-    driver.quit()
-    return screenshot_path
+# Hàm gửi tin nhắn văn bản qua Telegram (dự phòng nếu không chụp được ảnh)
+def send_telegram_message(bot_token, chat_id, message):
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
+    requests.post(url, json=payload)
 
 @app.route("/", methods=["HEAD", "GET"])
 def keep_alive():
@@ -83,43 +32,53 @@ def keep_alive():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
+    print(f"📥 Headers: {request.headers}")
+    print(f"📥 Raw data: {request.data}")
+
     try:
         alert_message = request.data.decode("utf-8").strip()
-        print("Received alert:", alert_message)
-
         if not alert_message:
+            print("⚠️ No message received!")
             return jsonify({"error": "No message received"}), 400
 
-        # Trích xuất tín hiệu và URL chart từ alert
-        signal = extract_signal(alert_message)
-        chart_url = extract_chart_url(alert_message)
+        print(f"📥 Processed Message: {alert_message}")
 
-        print("Extracted signal:", signal)
-        print("Extracted chart URL:", chart_url)
+        # Phân tích thông điệp alert
+        lines = alert_message.split("\n")
+        signal = lines[0].split(": ")[1]  # "Long" hoặc "Short"
+        chart_url = lines[1].split(": ")[1]  # URL biểu đồ
 
-        image_path = None
-        if chart_url:
-            image_path = capture_chart_screenshot(chart_url)
-            print("Captured image path:", image_path)
-
-        # Gửi tin nhắn qua bot phù hợp
-        if signal == "LONG":
-            send_telegram_message(BOT1_TOKEN, CHAT_ID, alert_message, image_path)
-        elif signal == "SHORT":
-            send_telegram_message(BOT2_TOKEN, CHAT_ID, alert_message, image_path)
+        # Chụp ảnh biểu đồ bằng APIFlash
+        apiflash_url = f"https://api.apiflash.com/v1/urltoimage?access_key={APIFLASH_API_KEY}&url={chart_url}&format=png&width=1280&height=720"
+        response = requests.get(apiflash_url)
+        if response.status_code == 200:
+            photo_url = response.url  # URL ảnh từ APIFlash
+            print(f"✅ Screenshot captured: {photo_url}")
         else:
-            return jsonify({"error": "Unknown signal type"}), 400
+            photo_url = None
+            print(f"❌ Error capturing screenshot: {response.status_code} - {response.text}")
+
+        # Gửi tín hiệu Long qua BOT1
+        if "Long" in signal:
+            print(f"🚀 Sending LONG signal via BOT1")
+            if photo_url:
+                send_telegram_photo(BOT1_TOKEN, CHAT_ID, photo_url, alert_message)
+            else:
+                send_telegram_message(BOT1_TOKEN, CHAT_ID, f"{alert_message}\n(Ảnh không chụp được)")
+
+        # Gửi tín hiệu Short qua BOT2
+        if "Short" in signal:
+            print(f"📉 Sending SHORT signal via BOT2")
+            if photo_url:
+                send_telegram_photo(BOT2_TOKEN, CHAT_ID, photo_url, alert_message)
+            else:
+                send_telegram_message(BOT2_TOKEN, CHAT_ID, f"{alert_message}\n(Ảnh không chụp được)")
 
     except Exception as e:
-        error_message = traceback.format_exc()
-        print("Error in webhook:", error_message)
+        print(f"❌ Error processing webhook: {e}")
         return jsonify({"error": str(e)}), 500
 
     return jsonify({"status": "ok"})
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
