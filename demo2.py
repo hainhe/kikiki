@@ -44,10 +44,10 @@ def webhook():
 
         print(f"📥 Processed Message: {alert_message}")
 
-        # Phân tích thông điệp alert (giả sử alert gửi theo định dạng sau:
-        # "Signal: Long\nChart URL: https://www.tradingview.com/chart/?symbol=AUDCHF&interval=1")
+        # Giả sử alert gửi theo định dạng:
+        # "Signal: Long\nChart URL: https://www.tradingview.com/chart/?symbol=AUDCHF"
         lines = alert_message.split("\n")
-        signal = lines[0].split(": ")[1].strip()  # Ví dụ "Long" hoặc "Short"
+        signal = lines[0].split(": ")[1].strip()  # "Long" hoặc "Short"
         original_chart_url = lines[1].split(": ")[1].strip()  # URL ban đầu
 
         # Trích xuất cặp tiền từ URL ban đầu
@@ -58,21 +58,28 @@ def webhook():
             print("⚠️ Symbol not found in the URL!")
             symbol = "Unknown"
 
-        # Tạo URL chart mới với khung thời gian cố định là 1 phút (interval=1)
+        # Tạo URL chart mới với khung thời gian cố định là 1 phút
         new_chart_url = f"https://www.tradingview.com/chart/?symbol={symbol}&interval=1"
 
         # Tạo caption chỉ chứa thông tin cặp tiền và tín hiệu
         alert_caption = f"Signal: {signal}\nPair: {symbol}"
 
-        # Chụp ảnh chart qua APIFlash sử dụng URL mới
+        # Thêm các tham số wait và user_agent để TradingView render chart đúng 1 phút
+        user_agent = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/112.0.0.0 Safari/537.36")
         apiflash_url = (
             f"https://api.apiflash.com/v1/urltoimage?"
-            f"access_key={APIFLASH_API_KEY}&url={new_chart_url}"
+            f"access_key={APIFLASH_API_KEY}"
+            f"&url={new_chart_url}"
             f"&format=png&width=1280&height=720"
+            f"&wait=5000"  # chờ 5 giây để trang load đầy đủ
+            f"&user_agent={user_agent}"
         )
+
         response = requests.get(apiflash_url)
         if response.status_code == 200:
-            photo_url = response.url  # URL của ảnh chụp được từ APIFlash
+            photo_url = response.url  # URL ảnh chụp được từ APIFlash
             print(f"✅ Screenshot captured: {photo_url}")
         else:
             photo_url = None
@@ -102,6 +109,7 @@ def webhook():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
 
