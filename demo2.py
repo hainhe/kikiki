@@ -59,7 +59,7 @@ def webhook():
             symbol = "Unknown"
 
         # Tạo URL chart mới với khung thời gian cố định là 1 phút
-        new_chart_url = f"https://www.tradingview.com/chart/?symbol={symbol}&interval=1"
+        new_chart_url = f"https://www.tradingview.com/chart/?symbol={symbol}&interval=15"
 
         # Tạo caption chỉ chứa thông tin cặp tiền và tín hiệu
         alert_caption = f"Signal: {signal}\nPair: {symbol}"
