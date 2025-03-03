@@ -1,6 +1,7 @@
+import re
 from flask import Flask, request, jsonify
 import requests
-from urllib.parse import urlparse, parse_qs
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -44,44 +45,43 @@ def webhook():
 
         print(f"📥 Processed Message: {alert_message}")
 
-        lines = alert_message.split("\n")
-        signal = lines[0].split(": ")[1].strip()  # "Long" hoặc "Short"
-        original_chart_url = lines[1].split(": ")[1].strip()
+        # Trích xuất symbol
+        match = re.search(r'🌜(.*?)🌛', alert_message)
+        symbol = match.group(1) if match else "Unknown"
 
-        parsed_url = urlparse(original_chart_url)
-        qs = parse_qs(parsed_url.query)
-        symbol = qs.get('symbol', [''])[0]
-        if not symbol:
-            print("⚠️ Symbol not found in the URL!")
-            symbol = "Unknown"
+        # Trích xuất dấu thời gian từ thông điệp
+        time_match = re.search(r'Time: (\d{4}-\d{2}-\d{2} \d{2}:\d{2})', alert_message)
+        if time_match:
+            signal_time = datetime.strptime(time_match.group(1), "%Y-%m-%d %H:%M")
+            end_time = int(signal_time.timestamp() * 1000)  # Chuyển sang milliseconds
+        else:
+            end_time = int(datetime.now().timestamp() * 1000)  # Dùng thời gian hiện tại nếu không có
 
-        # Tạo URL chụp ảnh chart với Chart-Img
+        # Tạo URL chụp ảnh chart với Chart-Img, bao gồm end_time
         chart_img_url = (f"https://api.chart-img.com/v1/tradingview/advanced-chart?"
-                         f"key={CHART_IMG_API_KEY}&symbol={symbol}&interval=15m&theme=dark")
+                         f"key={CHART_IMG_API_KEY}&symbol={symbol}&interval=15m&theme=dark&end_time={end_time}")
 
         response = requests.get(chart_img_url)
         if response.status_code == 200:
-            photo_url = response.url  # URL ảnh chụp từ Chart-Img
+            photo_url = response.url
             print(f"✅ Screenshot captured: {photo_url}")
         else:
             photo_url = None
             print(f"❌ Error capturing screenshot: {response.status_code} - {response.text}")
 
-        alert_caption = f"Signal: {signal}\nPair: {symbol}"
-
-        if "Long" in signal:
+        # Xác định bot dựa trên tín hiệu
+        if "LONG" in alert_message:
             print("🚀 Sending LONG signal via BOT1")
             if photo_url:
-                send_telegram_photo(BOT1_TOKEN, CHAT_ID, photo_url, alert_caption)
+                send_telegram_photo(BOT1_TOKEN, CHAT_ID, photo_url, alert_message)
             else:
-                send_telegram_message(BOT1_TOKEN, CHAT_ID, f"{alert_caption}\n(Ảnh không chụp được)")
-
-        if "Short" in signal:
+                send_telegram_message(BOT1_TOKEN, CHAT_ID, f"{alert_message}\n(Ảnh không chụp được)")
+        elif "SHORT" in alert_message:
             print("📉 Sending SHORT signal via BOT2")
             if photo_url:
-                send_telegram_photo(BOT2_TOKEN, CHAT_ID, photo_url, alert_caption)
+                send_telegram_photo(BOT2_TOKEN, CHAT_ID, photo_url, alert_message)
             else:
-                send_telegram_message(BOT2_TOKEN, CHAT_ID, f"{alert_caption}\n(Ảnh không chụp được)")
+                send_telegram_message(BOT2_TOKEN, CHAT_ID, f"{alert_message}\n(Ảnh không chụp được)")
 
     except Exception as e:
         print(f"❌ Error processing webhook: {e}")
