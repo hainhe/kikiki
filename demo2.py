@@ -59,7 +59,7 @@ def webhook():
 
         # Tạo URL chụp ảnh chart với Chart-Img, bao gồm end_time
         chart_img_url = (f"https://api.chart-img.com/v1/tradingview/advanced-chart?"
-                         f"key={CHART_IMG_API_KEY}&symbol={symbol}&interval=15m&theme=dark&end_time={end_time}")
+                         f"key={CHART_IMG_API_KEY}&symbol={symbol}&interval=1m&theme=dark&end_time={end_time}")
 
         response = requests.get(chart_img_url)
         if response.status_code == 200:
